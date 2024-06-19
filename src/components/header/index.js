@@ -56,6 +56,11 @@ function Header({ user, profileInfo }) {
       path: "/account",
       show: profileInfo,
     },
+    {
+      label: "Meeting",
+      path: "https://conferencing-five.vercel.app/",
+      show: profileInfo?.role === "recruiter",
+    },
   ];
 
   return (
@@ -76,7 +81,9 @@ function Header({ user, profileInfo }) {
               {menuItems.map((menuItem) =>
                 menuItem.show ? (
                   <Link
+                    key={menuItem.path}
                     href={menuItem.path}
+                    target={menuItem.label === "Meeting" ? "_blank" : "_self"}
                     className="flex w-full items-center py-2 text-lg font-semibold"
                   >
                     {menuItem.label}
@@ -99,7 +106,9 @@ function Header({ user, profileInfo }) {
           {menuItems.map((menuItem) =>
             menuItem.show ? (
               <Link
+                key={menuItem.path}
                 href={menuItem.path}
+                target={menuItem.label === "Meeting" ? "_blank" : "_self"}
                 onClick={() => sessionStorage.removeItem("filterParams")}
                 className="group inline-flex h-9 w-max items-center rounded-md  px-4 py-2 text-sm font-medium"
               >
