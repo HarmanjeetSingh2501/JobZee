@@ -10,13 +10,15 @@ import { revalidatePath } from "next/cache";
 const stripe = require("stripe")(
   "sk_test_51ORAkzSJvIXrPvjkdbt3YfJ9lrEOqy9gOzo9f4GDN3hSExRtoLNLkrl66xDJ16n8Uj2oTqRxbYdgSLVGGWKRgd2b00Wo1SOPNf"
 );
-//create profile action
+
+// create profile action
 export async function createProfileAction(formData, pathToRevalidate) {
   await connectToDB();
   await Profile.create(formData);
   revalidatePath(pathToRevalidate);
 }
 
+// fetch profile action
 export async function fetchProfileAction(id) {
   await connectToDB();
   const result = await Profile.findOne({ userId: id });
@@ -24,23 +26,23 @@ export async function fetchProfileAction(id) {
   return JSON.parse(JSON.stringify(result));
 }
 
-//create job action
-
+// create job action
 export async function postNewJobAction(formData, pathToRevalidate) {
   await connectToDB();
   await Job.create(formData);
   revalidatePath(pathToRevalidate);
 }
 
-//fetch job action
-//recruiter
+// fetch job action
+// recruiter
 export async function fetchJobsForRecruiterAction(id) {
   await connectToDB();
   const result = await Job.find({ recruiterId: id });
 
   return JSON.parse(JSON.stringify(result));
 }
-//candidate
+
+// candidate
 export async function fetchJobsForCandidateAction(filterParams = {}) {
   await connectToDB();
   let updatedParams = {};
@@ -55,15 +57,14 @@ export async function fetchJobsForCandidateAction(filterParams = {}) {
   return JSON.parse(JSON.stringify(result));
 }
 
-//create job application
-
+// create job application
 export async function createJobApplicationAction(data, pathToRevalidate) {
   await connectToDB();
   await Application.create(data);
   revalidatePath(pathToRevalidate);
 }
 
-//fetch job applications - candidate
+// fetch job applications - candidate
 export async function fetchJobApplicationsForCandidate(candidateID) {
   await connectToDB();
   const result = await Application.find({ candidateUserID: candidateID });
@@ -71,8 +72,7 @@ export async function fetchJobApplicationsForCandidate(candidateID) {
   return JSON.parse(JSON.stringify(result));
 }
 
-//fetch job applications - recruiter
-
+// fetch job applications - recruiter
 export async function fetchJobApplicationsForRecruiter(recruiterID) {
   await connectToDB();
   const result = await Application.find({ recruiterUserID: recruiterID });
@@ -80,7 +80,7 @@ export async function fetchJobApplicationsForRecruiter(recruiterID) {
   return JSON.parse(JSON.stringify(result));
 }
 
-//update job application
+// update job application
 export async function updateJobApplicationAction(data, pathToRevalidate) {
   await connectToDB();
   const {
@@ -92,11 +92,11 @@ export async function updateJobApplicationAction(data, pathToRevalidate) {
     jobID,
     _id,
     jobAppliedDate,
+    messages // Include messages
   } = data;
+
   await Application.findOneAndUpdate(
-    {
-      _id: _id,
-    },
+    { _id: _id },
     {
       recruiterUserID,
       name,
@@ -105,13 +105,14 @@ export async function updateJobApplicationAction(data, pathToRevalidate) {
       status,
       jobID,
       jobAppliedDate,
+      $push: { messages: { $each: messages } } // Update messages
     },
     { new: true }
   );
   revalidatePath(pathToRevalidate);
 }
 
-//get candidate detAils by candidate ID
+// get candidate details by candidate ID
 export async function getCandidateDetailsByIDAction(currentCandidateID) {
   await connectToDB();
   const result = await Profile.findOne({ userId: currentCandidateID });
@@ -119,7 +120,7 @@ export async function getCandidateDetailsByIDAction(currentCandidateID) {
   return JSON.parse(JSON.stringify(result));
 }
 
-//create filter categories
+// create filter categories
 export async function createFilterCategoryAction() {
   await connectToDB();
   const result = await Job.find({});
@@ -127,7 +128,7 @@ export async function createFilterCategoryAction() {
   return JSON.parse(JSON.stringify(result));
 }
 
-//update profile action
+// update profile action
 export async function updateProfileAction(data, pathToRevalidate) {
   await connectToDB();
   const {
@@ -164,7 +165,7 @@ export async function updateProfileAction(data, pathToRevalidate) {
   revalidatePath(pathToRevalidate);
 }
 
-//create stripe price id based on tier selection
+// create stripe price id based on tier selection
 export async function createPriceIdAction(data) {
   const session = await stripe.prices.create({
     currency: "inr",
@@ -183,7 +184,7 @@ export async function createPriceIdAction(data) {
   };
 }
 
-//create payment logic
+// create payment logic
 export async function createStripePaymentAction(data) {
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
@@ -199,14 +200,14 @@ export async function createStripePaymentAction(data) {
   };
 }
 
-//create post action
+// create post action
 export async function createFeedPostAction(data, pathToRevalidate) {
   await connectToDB();
   await Feed.create(data);
   revalidatePath(pathToRevalidate);
 }
 
-//fetch all posts action
+// fetch all posts action
 export async function fetchAllFeedPostsAction() {
   await connectToDB();
   const result = await Feed.find({});
@@ -214,7 +215,7 @@ export async function fetchAllFeedPostsAction() {
   return JSON.parse(JSON.stringify(result));
 }
 
-//update post action
+// update post action
 export async function updateFeedPostAction(data, pathToRevalidate) {
   await connectToDB();
   const { userId, userName, message, image, likes, _id } = data;

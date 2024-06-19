@@ -1,18 +1,19 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogFooter } from "../ui/dialog";
+import { Dialog, DialogContent } from "../ui/dialog";
 import {
   getCandidateDetailsByIDAction,
   updateJobApplicationAction,
 } from "@/actions";
 import { createClient } from "@supabase/supabase-js";
+import { formatDistanceToNowStrict } from "date-fns";
 
 const supabaseClient = createClient(
   "https://pwquvawgorvsgbkwlvsu.supabase.co",
-   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3cXV2YXdnb3J2c2dia3dsdnN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTg1NTMzNjQsImV4cCI6MjAzNDEyOTM2NH0.nkvg9VHf8k_rkrTd7Bv5I86CAv5UwxYaDE1yZ3fX1RQ"
- );
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB3cXV2YXdnb3J2c2dia3dsdnN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTg1NTMzNjQsImV4cCI6MjAzNDEyOTM2NH0.nkvg9VHf8k_rkrTd7Bv5I86CAv5UwxYaDE1yZ3fX1RQ"
+);
 
 function CandidateList({
   jobApplications,
@@ -21,6 +22,8 @@ function CandidateList({
   showCurrentCandidateDetailsModal,
   setShowCurrentCandidateDetailsModal,
 }) {
+  const [message, setMessage] = useState("");
+
   async function handleFetchCandidateDetails(getCurrentCandidateId) {
     const data = await getCandidateDetailsByIDAction(getCurrentCandidateId);
 
@@ -29,8 +32,6 @@ function CandidateList({
       setShowCurrentCandidateDetailsModal(true);
     }
   }
-
-  console.log(currentCandidateDetails);
 
   function handlePreviewResume() {
     const { data } = supabaseClient.storage
@@ -53,24 +54,27 @@ function CandidateList({
     );
     const jobApplicantsToUpdate = {
       ...cpyJobApplicants[indexOfCurrentJobApplicant],
-      status:
-        cpyJobApplicants[indexOfCurrentJobApplicant].status.concat(
-          getCurrentStatus
-        ),
+      status: cpyJobApplicants[indexOfCurrentJobApplicant].status.concat(
+        getCurrentStatus
+      ),
+      messages: [
+        ...(cpyJobApplicants[indexOfCurrentJobApplicant].messages || []),
+        { message, date: new Date() },
+      ],
     };
 
-    console.log(jobApplicantsToUpdate, "jobApplicantsToUpdate");
     await updateJobApplicationAction(jobApplicantsToUpdate, "/jobs");
   }
-
-  console.log(jobApplications);
 
   return (
     <Fragment>
       <div className="grid grid-cols-1 gap-3 p-10 md:grid-cols-2 lg:grid-cols-3">
         {jobApplications && jobApplications.length > 0
           ? jobApplications.map((jobApplicantItem) => (
-              <div className="bg-white shadow-lg w-full max-w-sm rounded-lg overflow-hidden mx-auto mt-4">
+              <div
+                key={jobApplicantItem.candidateUserID}
+                className="bg-white shadow-lg w-full max-w-sm rounded-lg overflow-hidden mx-auto mt-4"
+              >
                 <div className="px-4 my-6 flex justify-between items-center">
                   <h3 className="text-lg font-bold dark:text-black">
                     {jobApplicantItem?.name}
@@ -126,10 +130,13 @@ function CandidateList({
               <div className="flex flex-wrap items-center gap-4 mt-6">
                 {currentCandidateDetails?.candidateInfo?.previousCompanies
                   .split(",")
-                  .map((skillItem) => (
-                    <div className="w-[100px] dark:bg-white flex justify-center items-center h-[35px] bg-black rounded-[4px]">
-                      <h2 className="text-[13px]  dark:text-black font-medium text-white">
-                        {skillItem}
+                  .map((company, index) => (
+                    <div
+                      key={index}
+                      className="w-[100px] dark:bg-white flex justify-center items-center h-[35px] bg-black rounded-[4px]"
+                    >
+                      <h2 className="text-[13px] dark:text-black font-medium text-white">
+                        {company}
                       </h2>
                     </div>
                   ))}
@@ -138,25 +145,34 @@ function CandidateList({
             <div className="flex flex-wrap gap-4 mt-6">
               {currentCandidateDetails?.candidateInfo?.skills
                 .split(",")
-                .map((skillItem) => (
-                  <div className="w-[100px] dark:bg-white flex justify-center items-center h-[35px] bg-black rounded-[4px]">
+                .map((skill, index) => (
+                  <div
+                    key={index}
+                    className="w-[100px] dark:bg-white flex justify-center items-center h-[35px] bg-black rounded-[4px]"
+                  >
                     <h2 className="text-[13px] dark:text-black font-medium text-white">
-                      {skillItem}
+                      {skill}
                     </h2>
                   </div>
                 ))}
             </div>
           </div>
-          <div className="flex gap-3">
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Enter your message"
+            className="w-full p-2 mt-4 border rounded"
+          />
+          <div className="flex gap-3 mt-4">
             <Button
               onClick={handlePreviewResume}
-              className=" flex h-11 items-center justify-center px-5"
+              className="flex h-11 items-center justify-center px-5"
             >
               Resume
             </Button>
             <Button
               onClick={() => handleUpdateJobStatus("selected")}
-              className=" disabled:opacity-65 flex h-11 items-center justify-center px-5"
+              className="disabled:opacity-65 flex h-11 items-center justify-center px-5"
               disabled={
                 jobApplications
                   .find(
@@ -185,7 +201,7 @@ function CandidateList({
             </Button>
             <Button
               onClick={() => handleUpdateJobStatus("rejected")}
-              className=" disabled:opacity-65 flex h-11 items-center justify-center px-5"
+              className="disabled:opacity-65 flex h-11 items-center justify-center px-5"
               disabled={
                 jobApplications
                   .find(
