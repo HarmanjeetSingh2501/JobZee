@@ -58,7 +58,7 @@ function Header({ user, profileInfo }) {
     },
     {
       label: "Meeting",
-      path: "https://conferencing-five.vercel.app/",
+      path: "https://conferencing-gdas.vercel.app/",
       show: profileInfo?.role === "recruiter",
     },
   ];
