@@ -1,23 +1,12 @@
-import mongoose from "mongoose";
+const { default: mongoose } = require("mongoose");
 
 const connectToDB = async () => {
-  const connectionURL = process.env.MONGO_URI;
+  const connectionURL = process.env.MONGODB_URI;
 
-  if (!connectionURL) {
-    throw new Error("MONGO_URI environment variable is not set");
-  }
-
-  try {
-    await mongoose.connect(connectionURL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      dbName: "JOB_PORTAL",
-    });
-    console.log("Database connection is successful");
-  } catch (error) {
-    console.error(`Database connection error: ${error}`);
-    process.exit(1); // Exit process with failure
-  }
+  mongoose
+    .connect(connectionURL)
+    .then(() => console.log("jon board database connection is successfull"))
+    .catch((error) => console.log(error));
 };
 
 export default connectToDB;
